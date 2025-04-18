@@ -1,5 +1,7 @@
 package lib;
 
+import java.time.LocalDate;
+
 public class TaxFunction {
 
 	
@@ -15,30 +17,31 @@ public class TaxFunction {
 	 */
 	
 	
-	public static int calculateTax(int monthlySalary, int otherMonthlyIncome, int numberOfMonthWorking, int deductible, boolean isMarried, int numberOfChildren) {
-		
-		int tax = 0;
-		
-		if (numberOfMonthWorking > 12) {
-			System.err.println("More than 12 month working per year");
+	public static int calculateTax(Employee employee) {
+		int monthsWorked;
+		LocalDate currentDate = LocalDate.now();
+
+		if (currentDate.getYear() == employee.getYearJoined()) {
+			monthsWorked = currentDate.getMonthValue() - employee.getMonthJoined();
+		} else {
+			monthsWorked = 12;
 		}
-		
-		if (numberOfChildren > 3) {
-			numberOfChildren = 3;
+
+		if (monthsWorked > 12) {
+			System.err.println("More than 12 months worked");
+			monthsWorked = 12;
 		}
-		
-		if (isMarried) {
-			tax = (int) Math.round(0.05 * (((monthlySalary + otherMonthlyIncome) * numberOfMonthWorking) - deductible - (54000000 + 4500000 + (numberOfChildren * 1500000))));
-		}else {
-			tax = (int) Math.round(0.05 * (((monthlySalary + otherMonthlyIncome) * numberOfMonthWorking) - deductible - 54000000));
-		}
-		
-		if (tax < 0) {
-			return 0;
-		}else {
-			return tax;
-		}
-			 
+
+		boolean isMarried = employee.getSpouseIdNumber() != null;
+		int children = Math.min(3, employee.getChildCount());
+
+		int totalIncome = (employee.getMonthlySalary() + employee.getOtherMonthlyIncome()) * monthsWorked;
+		int ptkp = 54000000 + (isMarried ? 4500000 : 0) + (children * 1500000);
+
+		int taxable = totalIncome - employee.getAnnualDeductible() - ptkp;
+		if (taxable <= 0) return 0;
+
+		return (int) Math.round(0.05 * taxable);
 	}
 	
 }
